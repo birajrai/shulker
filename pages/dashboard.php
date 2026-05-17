@@ -1,8 +1,10 @@
 <?php
 require_once __DIR__ . '/../includes/security.php';
 require_once __DIR__ . '/../includes/layout_head.php';
+require_once __DIR__ . '/../includes/image_processor.php';
 
 $user = require_auth();
+heal_user_permissions($user['id']);
 
 // Avatar URL
 $avatar_url = '';
