@@ -13,7 +13,7 @@ function send_security_headers(): void {
          . 'script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' https://cdn.tailwindcss.com https://unpkg.com https://static.cloudflareinsights.com; '
          . 'style-src \'self\' \'unsafe-inline\' https://cdn.tailwindcss.com https://fonts.googleapis.com; '
          . 'font-src https://fonts.gstatic.com; '
-         . 'img-src \'self\' data: https://cdn.discordapp.com; '
+         . 'img-src \'self\' data: blob: https://cdn.discordapp.com; '
          . 'connect-src \'self\' https://cloudflareinsights.com;');
 }
 
