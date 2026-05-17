@@ -10,11 +10,11 @@ function send_security_headers(): void {
     header('X-XSS-Protection: 1; mode=block');
     header('Referrer-Policy: no-referrer');
     header('Content-Security-Policy: default-src \'self\'; '
-         . 'script-src \'self\' \'unsafe-inline\' https://cdn.tailwindcss.com https://unpkg.com; '
+         . 'script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' https://cdn.tailwindcss.com https://unpkg.com https://static.cloudflareinsights.com; '
          . 'style-src \'self\' \'unsafe-inline\' https://cdn.tailwindcss.com https://fonts.googleapis.com; '
          . 'font-src https://fonts.gstatic.com; '
          . 'img-src \'self\' data: https://cdn.discordapp.com; '
-         . 'connect-src \'self\';');
+         . 'connect-src \'self\' https://cloudflareinsights.com;');
 }
 
 function json_response(array $data, int $status = 200): never {
