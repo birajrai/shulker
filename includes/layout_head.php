@@ -18,10 +18,10 @@ function layout_head(string $title = 'Shulker'): void {
     theme: {
       extend: {
         fontFamily: {
-          mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
-          sans: ['"DM Sans"', 'ui-sans-serif', 'system-ui'],
-          pixel: ['"VT323"', 'monospace'],
-          retro: ['"Press Start 2P"', 'monospace'],
+          mono: ['"Roboto"', 'sans-serif'],
+          sans: ['"Roboto"', 'sans-serif'],
+          pixel: ['"Roboto"', 'sans-serif'],
+          retro: ['"Roboto"', 'sans-serif'],
         },
         colors: {
           ink:   { DEFAULT: '#0d0d0d', light: '#1a1a1a', soft: '#2e2e2e' },
@@ -33,7 +33,7 @@ function layout_head(string $title = 'Shulker'): void {
             DEFAULT: '#8c5c8c',
             dark: '#4a2c4a',
             light: '#ac7cac',
-            deep: '#1e1420',
+            deep: '#180e1a',
             gui: '#2c1e2d',
             slot: '#130c14',
           }
@@ -45,12 +45,12 @@ function layout_head(string $title = 'Shulker'): void {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   
-  /* Minecraft scrollbar */
+  /* Roboto scrollbar */
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: #130c14; }
   ::-webkit-scrollbar-thumb { 
@@ -60,145 +60,122 @@ function layout_head(string $title = 'Shulker'): void {
   }
 
   body { 
-    background: radial-gradient(circle, #25162a 0%, #0c070e 100%); 
-    color: #e0e0e0; 
-    font-family: 'JetBrains Mono', monospace; 
+    background: radial-gradient(circle, #281830 0%, #08040a 100%); 
+    color: #f3ecf7; 
+    font-family: 'Roboto', sans-serif; 
   }
 
-  /* Pixelated rendering */
+  /* Pixelated rendering for the Shulker box image logo */
   .pixelated {
     image-rendering: pixelated;
     image-rendering: crisp-edges;
   }
 
-  /* Minecraft block container */
+  /* Modern Flat 3D Voxel Container */
   .mc-panel {
-    background-color: #2c1d30;
+    background-color: #24142a;
     border: 4px solid #000000;
-    box-shadow: inset -4px -4px 0px 0px #180f1b, inset 4px 4px 0px 0px #4d3354;
-    image-rendering: pixelated;
+    box-shadow: 8px 8px 0px 0px #000000;
+    image-rendering: auto;
   }
 
   .mc-panel-outer {
     border: 4px solid #000000;
-    box-shadow: inset -4px -4px 0px 0px #0c070e, inset 4px 4px 0px 0px #35213b;
-    background: #190f1d;
+    box-shadow: 8px 8px 0px 0px #08040a;
+    background: #180e1a;
   }
 
-  /* Minecraft button styling */
+  /* Flat 3D oversized button styling */
   .mc-btn {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 11px;
-    color: #e0e0e0;
-    background-color: #4a4a4a;
-    border: 2px solid #000000;
-    box-shadow: inset -2px -2px 0px 0px #2b2b2b, inset 2px 2px 0px 0px #8b8b8b;
-    padding: 8px 16px;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    color: #ffffff;
+    background-color: #3e3e3e;
+    border: 3px solid #000000;
+    box-shadow: 4px 4px 0px 0px #000000;
+    padding: 12px 24px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    text-shadow: 2px 2px 0px #1c1c1c;
-    transition: none;
+    gap: 10px;
+    transition: transform 50ms ease, box-shadow 50ms ease;
     user-select: none;
   }
   .mc-btn:hover {
-    background-color: #5c5c5c;
-    color: #ffffff;
-    box-shadow: inset -2px -2px 0px 0px #3b3b3b, inset 2px 2px 0px 0px #ababab;
+    background-color: #525252;
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px 0px #000000;
   }
   .mc-btn:active {
-    box-shadow: inset 2px 2px 0px 0px #1c1c1c, inset -2px -2px 0px 0px #4a4a4a;
-    padding-top: 9px;
-    padding-bottom: 7px;
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px #000000;
   }
 
   /* Purple Shulker Box Button */
   .mc-btn-shulker {
     background-color: #8c5c8c;
-    box-shadow: inset -2px -2px 0px 0px #4a2c4a, inset 2px 2px 0px 0px #ac7cac;
-    text-shadow: 2px 2px 0px #2a152a;
   }
   .mc-btn-shulker:hover {
-    background-color: #9c6c9c;
-    box-shadow: inset -2px -2px 0px 0px #5c385c, inset 2px 2px 0px 0px #bc8cbc;
-  }
-  .mc-btn-shulker:active {
-    box-shadow: inset 2px 2px 0px 0px #1e0e1e, inset -2px -2px 0px 0px #8c5c8c;
-    padding-top: 9px;
-    padding-bottom: 7px;
+    background-color: #9f6c9f;
   }
 
   /* Green Minecraft Button */
   .mc-btn-green {
-    background-color: #5c8c5c;
-    box-shadow: inset -2px -2px 0px 0px #2c4a2c, inset 2px 2px 0px 0px #7cac7c;
-    text-shadow: 2px 2px 0px #1a2c1a;
+    background-color: #2e7d32;
   }
   .mc-btn-green:hover {
-    background-color: #6c9c6c;
-    box-shadow: inset -2px -2px 0px 0px #3c5c3c, inset 2px 2px 0px 0px #8cbc8c;
-  }
-  .mc-btn-green:active {
-    box-shadow: inset 2px 2px 0px 0px #121e12, inset -2px -2px 0px 0px #5c8c5c;
-    padding-top: 9px;
-    padding-bottom: 7px;
+    background-color: #388e3c;
   }
 
   /* Red Minecraft Button */
   .mc-btn-red {
-    background-color: #b83838;
-    box-shadow: inset -2px -2px 0px 0px #5e1c1c, inset 2px 2px 0px 0px #f06a6a;
-    text-shadow: 2px 2px 0px #3a0e0e;
+    background-color: #c62828;
   }
   .mc-btn-red:hover {
-    background-color: #c84848;
-    box-shadow: inset -2px -2px 0px 0px #6e2c2c, inset 2px 2px 0px 0px #ff7a7a;
-  }
-  .mc-btn-red:active {
-    box-shadow: inset 2px 2px 0px 0px #2c0808, inset -2px -2px 0px 0px #b83838;
-    padding-top: 9px;
-    padding-bottom: 7px;
+    background-color: #d32f2f;
   }
 
   /* Disabled button */
   .mc-btn:disabled {
-    background-color: #333333 !important;
-    color: #666666 !important;
-    box-shadow: inset -2px -2px 0px 0px #1e1e1e, inset 2px 2px 0px 0px #555555 !important;
-    text-shadow: none !important;
+    background-color: #222222 !important;
+    color: #555555 !important;
+    box-shadow: none !important;
+    transform: none !important;
     cursor: not-allowed;
   }
 
-  /* Minecraft inventory slot styling */
+  /* Large Clean Voxel Slot */
   .mc-slot {
     background-color: #130c14;
-    border: 2px solid #000000;
-    box-shadow: inset 3px 3px 0px 0px #070407, inset -3px -3px 0px 0px #241626;
-    image-rendering: pixelated;
-    aspect-ratio: 1/1;
+    border: 3px solid #000000;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: visible;
+    transition: transform 100ms ease, background-color 100ms ease;
   }
   .mc-slot:hover {
-    background-color: #241626;
-    box-shadow: inset 3px 3px 0px 0px #0e090f, inset -3px -3px 0px 0px #311e33;
+    background-color: #201322;
+    transform: scale(1.05);
+    z-index: 10;
   }
 
   .mc-slot-empty {
-    opacity: 0.15;
+    border: 3px dashed rgba(255, 255, 255, 0.12);
+    background-color: rgba(0, 0, 0, 0.2);
   }
 
-  /* Minecraft slot item highlight */
+  /* Highlight on hover */
   .mc-slot-highlight::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     opacity: 0;
     pointer-events: none;
   }
@@ -206,29 +183,21 @@ function layout_head(string $title = 'Shulker'): void {
     opacity: 1;
   }
 
-  /* Minecraft standard text shadow */
-  .mc-shadow {
-    text-shadow: 2px 2px 0px #000;
-  }
-  .mc-shadow-purple {
-    text-shadow: 2px 2px 0px #2a152a;
-  }
-
-  /* Minecraft tooltip style */
+  /* Tooltip style using Roboto */
   .mc-tooltip {
-    background-color: rgba(16, 1, 16, 0.96) !important;
-    border: 2px solid #2e0854 !important;
-    box-shadow: 0 0 0 2px #100110, inset 0 0 0 1px #4a0d8c !important;
-    border-radius: 0px !important;
+    background-color: rgba(16, 1, 16, 0.98) !important;
+    border: 3px solid #8c5c8c !important;
+    box-shadow: 6px 6px 0px 0px #000000;
     color: #ffffff;
-    padding: 8px 12px;
+    padding: 12px 16px;
     z-index: 999;
-    font-family: 'JetBrains Mono', monospace;
-    text-shadow: 2px 2px 0px #100110;
-    image-rendering: pixelated;
+    font-family: 'Roboto', sans-serif;
   }
 
   /* Upload zone drop effects */
+  .upload-zone {
+    transition: background-color 150ms ease, border-color 150ms ease;
+  }
   .upload-zone.drag-over {
     border-color: #ac7cac !important;
     background-color: #241626 !important;
@@ -237,23 +206,18 @@ function layout_head(string $title = 'Shulker'): void {
   /* Floating particle animations */
   @keyframes particleFloat {
     0% { transform: translateY(100vh) scale(0); opacity: 0; }
-    50% { opacity: 0.7; }
-    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+    50% { opacity: 0.6; }
+    100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
   }
   .particle {
     position: fixed;
-    width: 6px;
-    height: 6px;
-    background: #ac7cac;
-    box-shadow: 0 0 8px #bc8cbc;
+    width: 8px;
+    height: 8px;
+    background: #8c5c8c;
+    box-shadow: 0 0 10px #ac7cac;
     pointer-events: none;
     z-index: 0;
     animation: particleFloat 12s linear infinite;
-  }
-
-  /* Pixel borders helper */
-  .pixel-border-4 {
-    border: 4px solid black;
   }
 </style>
 </head>
@@ -265,4 +229,3 @@ function layout_head(string $title = 'Shulker'): void {
   <div class="particle" style="left: 75%; animation-delay: 1s; animation-duration: 16s;"></div>
   <div class="particle" style="left: 90%; animation-delay: 7s; animation-duration: 11s;"></div>
 <?php } ?>
-

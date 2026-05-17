@@ -129,7 +129,19 @@ function process_image(string $tmp_path, string $out_dir, string $random_id, str
     }
     @chmod($out_dir, 0755);
 
-    if ($animated) {
+    if ($mime === 'image/gif') {
+        $dest = $out_dir . '/' . $random_id . '.gif';
+        if (@copy($tmp_path, $dest)) {
+            $res = [
+                'ok'   => true,
+                'type' => 'gif',
+                'path' => $dest,
+                'size' => filesize($dest)
+            ];
+        } else {
+            $res = ['ok' => false, 'error' => 'Failed to save original GIF file.'];
+        }
+    } else if ($animated) {
         $res = convert_to_webm($tmp_path, $out_dir, $random_id);
     } else {
         $res = convert_to_avif($tmp_path, $out_dir, $random_id, $mime);

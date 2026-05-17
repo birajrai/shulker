@@ -20,7 +20,7 @@ define('SESSION_SECRET', 'CHANGE_THIS_TO_A_RANDOM_SECRET');
 
 // Upload limits
 define('MAX_UPLOAD_BYTES', 5 * 1024 * 1024);   // 5MB
-define('MAX_IMAGES_PER_USER', 50);
+define('MAX_IMAGES_PER_USER', 27);
 
 // Rate limiting
 define('RATE_LIMIT_UPLOADS', 5);    // uploads
