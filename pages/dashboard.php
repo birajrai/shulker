@@ -16,10 +16,50 @@ $display_name = h($user['global_name'] ?: $user['username']);
 layout_head('Dashboard');
 ?>
 
-<div x-data="shulker()" x-init="init()" class="min-h-screen flex flex-col justify-between">
+<div 
+  x-data="shulker()" 
+  x-init="init()" 
+  class="h-screen w-screen overflow-hidden flex flex-col justify-between select-none relative"
+  @dragover.prevent="dragOver = true"
+  @dragleave.prevent="dragOver = false"
+  @drop.prevent="handleDrop($event)"
+>
+
+  <!-- Hidden File Input for Global Click Triggers -->
+  <input
+    type="file"
+    x-ref="fileInput"
+    class="hidden"
+    accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+    multiple
+    @change="handleFileInput($event)"
+  >
+
+  <!-- Full-Screen Drag & Drop Overlay -->
+  <div 
+    x-show="dragOver" 
+    class="fixed inset-0 bg-shulker-deep/85 border-[6px] border-dashed border-shulker-light z-50 flex items-center justify-center pointer-events-none"
+    x-transition:enter="transition ease-out duration-100"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-100"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    x-cloak
+  >
+    <div class="text-center p-6">
+      <img src="/shulker.webp" class="w-20 h-20 mx-auto pixelated animate-bounce mb-4">
+      <p class="font-black text-2xl text-yellow-300 uppercase tracking-widest">
+        Drop items into Shulker Box
+      </p>
+      <p class="font-normal text-sm text-gray-400 mt-2">
+        Release to store directly in empty inventory slots
+      </p>
+    </div>
+  </div>
 
   <!-- ─── Nav ──────────────────────────────────────────── -->
-  <nav class="border-b-4 border-black bg-shulker-deep sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
+  <nav class="border-b-4 border-black bg-shulker-deep px-6 py-3.5 flex items-center justify-between flex-shrink-0 z-40">
     <div class="flex items-center gap-3">
       <img src="/shulker.webp" alt="Shulker Box" class="w-7 h-7 pixelated">
       <span class="font-black text-sm tracking-wider text-white uppercase">
@@ -40,49 +80,28 @@ layout_head('Dashboard');
         <span class="font-medium text-xs tracking-wider text-gray-200" x-text="images.length + ' / <?= MAX_IMAGES_PER_USER ?>'"></span>
       </div>
 
+      <button @click="$refs.fileInput.click()" class="mc-btn mc-btn-shulker text-xs py-1.5 px-4">
+        Add Item
+      </button>
+
       <a href="/logout" class="mc-btn mc-btn-red text-xs py-1.5 px-4">
         Sign out
       </a>
     </div>
   </nav>
 
-  <!-- ─── Main ─────────────────────────────────────────── -->
-  <main class="flex-1 px-6 py-10 max-w-6xl mx-auto w-full z-10">
+  <!-- ─── Main Content (Vertically & Horizontally Centered) ─── -->
+  <main class="flex-1 flex items-center justify-center p-6 overflow-hidden min-h-0 z-10">
 
-    <div class="mc-panel p-8 sm:p-10">
-      
-      <!-- Upload zone -->
-      <div
-        class="upload-zone border-4 border-dashed border-shulker-light/40 bg-shulker-deep/15 rounded-none mb-10 cursor-pointer relative hover:bg-shulker-deep/25 transition-colors duration-150"
-        @click="$clickUpload($event)"
-        @dragover.prevent="dragOver = true"
-        @dragleave.prevent="dragOver = false"
-        @drop.prevent="handleDrop($event)"
-        :class="{ 'drag-over': dragOver }"
-      >
-        <input
-          type="file"
-          x-ref="fileInput"
-          class="hidden"
-          accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
-          multiple
-          @change="handleFileInput($event)"
-        >
+    <div class="mc-panel p-6 sm:p-8 max-w-4xl w-full flex flex-col justify-center">
 
-        <div class="py-16 px-6 flex flex-col items-center gap-6 text-center">
-          <div class="w-20 h-20 border-2 border-black bg-shulker/25 flex items-center justify-center text-white shadow-inner relative group">
-            <img src="/shulker.webp" alt="Shulker Box" class="w-14 h-14 pixelated transform group-hover:scale-110 transition-transform duration-200">
-          </div>
-          <div>
-            <p class="font-black text-lg text-yellow-300 uppercase tracking-wide mb-1">
-              Drop images here, or <span class="text-white underline underline-offset-4">click to browse</span>
-            </p>
-            <p class="font-normal text-sm text-gray-400 mt-3">JPG · PNG · WebP · AVIF · GIF &nbsp;·&nbsp; 5 MB max</p>
-          </div>
-        </div>
+      <!-- Compact header -->
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-black text-sm text-yellow-300 uppercase tracking-widest">Shulker Box Inventory</h2>
+        <span class="font-medium text-xs text-gray-400 uppercase tracking-widest" x-text="images.length + ' / 27 Slots'"></span>
       </div>
 
-      <!-- Toast -->
+      <!-- Toast Alerts inside GUI -->
       <div
         x-show="toast.show"
         x-transition:enter="transition ease-out duration-150"
@@ -97,29 +116,23 @@ layout_head('Dashboard');
         x-text="toast.message"
       ></div>
 
-      <!-- Gallery header -->
-      <div class="flex items-center justify-between mb-6 mt-10">
-        <h2 class="font-black text-sm text-yellow-300 uppercase tracking-widest">Shulker Inventory</h2>
-        <span class="font-medium text-xs text-gray-400 uppercase tracking-widest" x-text="images.length + ' item(s)'"></span>
-      </div>
-
       <!-- Loading skeleton -->
-      <div x-show="loading" class="grid grid-cols-3 sm:grid-cols-6 md:grid-cols-9 gap-3 bg-shulker-deep/30 border-4 border-black p-6" x-cloak>
+      <div x-show="loading" class="grid grid-cols-3 sm:grid-cols-9 gap-3 bg-shulker-deep/30 border-4 border-black p-4" x-cloak>
         <template x-for="i in 27" :key="i">
           <div class="aspect-square bg-black/45 border-2 border-black animate-pulse"></div>
         </template>
       </div>
 
-      <!-- Inventory Grid -->
+      <!-- Inventory Grid (Strictly 27 slots on desktop/tablet) -->
       <div
         x-show="!loading"
         x-cloak
-        class="grid grid-cols-3 sm:grid-cols-6 md:grid-cols-9 gap-3 bg-shulker-deep/40 border-4 border-black p-6 shadow-inner"
+        class="grid grid-cols-3 sm:grid-cols-9 gap-3 bg-shulker-deep/40 border-4 border-black p-4 shadow-inner min-h-0 overflow-y-auto sm:overflow-visible"
       >
-        <template x-for="index in getTotalSlots()" :key="index">
-          <div class="aspect-square">
+        <template x-for="index in 27" :key="index">
+          <div class="aspect-square relative group">
             
-            <!-- Case 1: Slot has an uploaded image (either pending or completed) -->
+            <!-- Case 1: Slot has an uploaded image -->
             <template x-if="index - 1 < images.length">
               <div class="w-full h-full">
                 
@@ -133,7 +146,7 @@ layout_head('Dashboard');
                     <svg class="w-6 h-6 text-yellow-400 spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                       <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
                     </svg>
-                    <span class="font-black text-[9px] text-yellow-300 mt-2.5 tracking-wider" x-text="Math.round(images[index - 1].progress) + '%'"></span>
+                    <span class="font-black text-[9px] text-yellow-300 mt-2 tracking-wider" x-text="Math.round(images[index - 1].progress) + '%'"></span>
                   </div>
                 </div>
 
@@ -167,7 +180,7 @@ layout_head('Dashboard');
                     <svg class="w-6 h-6 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                       <polyline points="20 6 9 17 4 12"/>
                     </svg>
-                    <span class="font-black text-[9px] text-green-300 mt-1 uppercase tracking-wider">COPIED</span>
+                    <span class="font-black text-[8px] text-green-300 mt-1 uppercase tracking-wider">COPIED</span>
                   </div>
 
                   <!-- Delete progress spinner -->
@@ -178,14 +191,14 @@ layout_head('Dashboard');
                   </div>
 
                   <!-- Hover overlays for actions -->
-                  <div class="absolute inset-x-0 bottom-0 bg-black/85 p-1.5 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-auto" @click.stop>
-                    <button @click.stop="copyUrl(images[index - 1])" class="w-7 h-7 bg-green-700 hover:bg-green-600 border-2 border-black flex items-center justify-center text-white" title="Copy URL">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <div class="absolute inset-x-0 bottom-0 bg-black/85 p-1 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-auto" @click.stop>
+                    <button @click.stop="copyUrl(images[index - 1])" class="w-6 h-6 bg-green-700 hover:bg-green-600 border-2 border-black flex items-center justify-center text-white" title="Copy URL">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
                       </svg>
                     </button>
-                    <button @click.stop="deleteImage(images[index - 1])" class="w-7 h-7 bg-red-700 hover:bg-red-600 border-2 border-black flex items-center justify-center text-white" title="Delete Image">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <button @click.stop="deleteImage(images[index - 1])" class="w-6 h-6 bg-red-700 hover:bg-red-600 border-2 border-black flex items-center justify-center text-white" title="Delete Image">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
                       </svg>
                     </button>
@@ -208,8 +221,16 @@ layout_head('Dashboard');
 
             <!-- Case 2: Slot is empty -->
             <template x-if="index - 1 >= images.length">
-              <div class="mc-slot mc-slot-empty w-full h-full pointer-events-none">
-                <div class="w-5 h-5 bg-black/25 border border-black/10"></div>
+              <div 
+                class="mc-slot mc-slot-empty w-full h-full cursor-pointer flex items-center justify-center hover:bg-black/40 hover:border-shulker-light/30 transition-colors pointer-events-auto"
+                @click="$refs.fileInput.click()"
+                title="Click to Upload File"
+              >
+                <!-- Large clean plus icon inside slot -->
+                <svg class="w-5 h-5 text-white/10 group-hover:text-white/30 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
               </div>
             </template>
 
@@ -221,7 +242,8 @@ layout_head('Dashboard');
 
   </main>
 
-  <footer class="border-t-4 border-black bg-shulker-deep px-8 py-5 text-center mt-10 z-10">
+  <!-- ─── Footer ───────────────────────────────────────── -->
+  <footer class="border-t-4 border-black bg-shulker-deep px-8 py-3.5 text-center flex-shrink-0 z-10">
     <span class="font-normal text-xs text-gray-400 uppercase tracking-widest">shulker box v<?= SHULKER_VERSION ?></span>
   </footer>
 
@@ -242,16 +264,13 @@ function shulker() {
       this.setupPaste();
     },
 
-    getTotalSlots() {
-      return Math.max(27, Math.ceil(this.images.length / 9) * 9);
-    },
-
     async loadImages() {
       this.loading = true;
       try {
         const r = await fetch('/api/images');
         const d = await r.json();
-        this.images = (d.images || []).map(img => ({ ...img, copied: false, deleting: false, isPending: false }));
+        // Constrain local state to max 27 items
+        this.images = (d.images || []).slice(0, 27).map(img => ({ ...img, copied: false, deleting: false, isPending: false }));
       } catch(e) {
         this.showToast('Failed to load images.', true);
       } finally {
@@ -274,12 +293,6 @@ function shulker() {
       });
     },
 
-    $clickUpload(e) {
-      // Avoid clicking input when inner elements with their own event triggers are clicked
-      if (e.target.closest('input')) return;
-      this.$refs.fileInput.click();
-    },
-
     handleFileInput(event) {
       const files = Array.from(event.target.files || []);
       if (files.length) this.uploadFiles(files);
@@ -293,8 +306,22 @@ function shulker() {
     },
 
     async uploadFiles(files) {
+      // Enforce absolute cap of 27 uploads
+      if (this.images.length >= 27) {
+        this.showToast('Your Shulker Box is full! Delete items to add more.', true);
+        return;
+      }
+
+      // Filter to only upload up to slot limit
+      const slotsLeft = 27 - this.images.length;
+      const filesToUpload = Array.from(files).slice(0, slotsLeft);
+
+      if (files.length > slotsLeft) {
+        this.showToast(`Only space for ${slotsLeft} item(s). Excluded the rest.`, true);
+      }
+
       // Create concurrent parallel uploads!
-      const uploadPromises = Array.from(files).map(async (file) => {
+      const uploadPromises = filesToUpload.map(async (file) => {
         // Generate placeholder item
         const tempId = 'pending-' + Math.random().toString(36).substr(2, 9);
         const pendingItem = {
