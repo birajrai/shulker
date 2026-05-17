@@ -155,6 +155,9 @@ layout_head('Dashboard');
                   x-show="!images[index - 1].isPending"
                   class="mc-slot group cursor-pointer relative w-full h-full"
                   @click="copyUrl(images[index - 1])"
+                  @mouseenter="showTooltip($event, images[index - 1])"
+                  @mousemove="moveTooltip($event)"
+                  @mouseleave="hideTooltip()"
                 >
                   <!-- Preview -->
                   <template x-if="images[index - 1].type === 'webm'">
@@ -204,17 +207,6 @@ layout_head('Dashboard');
                     </button>
                   </div>
 
-                  <!-- Minecraft Tooltip -->
-                  <div class="mc-tooltip hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-60 pointer-events-none p-4 text-left font-sans">
-                    <div class="font-black text-sm text-yellow-300 mb-1.5 truncate" x-text="'SHULKER_' + images[index - 1].id.substring(0, 8).toUpperCase()"></div>
-                    <div class="text-xs text-cyan-300 font-bold mb-1.5" x-text="images[index - 1].type.toUpperCase() + ' ITEM'"></div>
-                    <div class="text-xs text-gray-300 font-medium" x-text="'SIZE: ' + formatSize(images[index - 1].size)"></div>
-                    <div class="text-xs text-gray-400 font-medium" x-text="'DATE: ' + formatDate(images[index - 1].created)"></div>
-                    <div class="border-t border-purple-900/50 my-2"></div>
-                    <div class="text-[10px] text-purple-300 font-black tracking-wider uppercase">Left-Click to Copy Link</div>
-                    <div class="text-[10px] text-red-300 font-black tracking-wider uppercase">Overlays to Delete</div>
-                  </div>
-
                 </div>
               </div>
             </template>
@@ -242,10 +234,24 @@ layout_head('Dashboard');
 
   </main>
 
-  <!-- ─── Footer ───────────────────────────────────────── -->
-  <footer class="border-t-4 border-black bg-shulker-deep px-8 py-3.5 text-center flex-shrink-0 z-10">
-    <span class="font-normal text-xs text-gray-400 uppercase tracking-widest">shulker box v<?= SHULKER_VERSION ?></span>
-  </footer>
+  <!-- Dummy spacer for alignment without footer -->
+  <div class="h-6 flex-shrink-0"></div>
+
+  <!-- Global Minecraft Tooltip (Mouse-following, Responsive & Boundary Aware) -->
+  <div 
+    x-show="activeTooltip.show" 
+    class="mc-tooltip fixed pointer-events-none z-50 w-60"
+    :style="`left: ${activeTooltip.x}px; top: ${activeTooltip.y}px;`"
+    x-cloak
+  >
+    <div class="font-black text-sm text-yellow-300 mb-1.5 truncate" x-text="activeTooltip.title"></div>
+    <div class="text-xs text-cyan-300 font-bold mb-1.5" x-text="activeTooltip.type + ' ITEM'"></div>
+    <div class="text-xs text-gray-300 font-medium" x-text="'SIZE: ' + activeTooltip.size"></div>
+    <div class="text-xs text-gray-400 font-medium" x-text="'DATE: ' + activeTooltip.date"></div>
+    <div class="border-t border-purple-900/50 my-2"></div>
+    <div class="text-[10px] text-purple-300 font-black tracking-wider uppercase">Left-Click to Copy Link</div>
+    <div class="text-[10px] text-red-300 font-black tracking-wider uppercase">Overlays to Delete</div>
+  </div>
 
 </div>
 
@@ -257,6 +263,7 @@ function shulker() {
     loading:          true,
     dragOver:         false,
     toast:            { show: false, message: '', error: false },
+    activeTooltip:    { show: false, x: 0, y: 0, title: '', type: '', size: '', date: '' },
     _toastTimer:      null,
 
     async init() {
@@ -404,6 +411,7 @@ function shulker() {
 
     async copyUrl(img) {
       if (img.isPending) return;
+      this.hideTooltip();
       try {
         await navigator.clipboard.writeText(img.url);
         img.copied = true;
@@ -425,6 +433,7 @@ function shulker() {
 
     async deleteImage(img) {
       if (img.deleting || img.isPending) return;
+      this.hideTooltip();
       img.deleting = true;
 
       try {
@@ -448,6 +457,38 @@ function shulker() {
         img.deleting = false;
         this.showToast('Network error.', true);
       }
+    },
+
+    showTooltip(e, img) {
+      if (img.isPending) return;
+      this.activeTooltip.title = 'SHULKER_' + img.id.substring(0, 8).toUpperCase();
+      this.activeTooltip.type = img.type.toUpperCase();
+      this.activeTooltip.size = this.formatSize(img.size);
+      this.activeTooltip.date = this.formatDate(img.created);
+      this.activeTooltip.show = true;
+      this.moveTooltip(e);
+    },
+
+    moveTooltip(e) {
+      const tooltipW = 240;
+      const tooltipH = 160;
+      let x = e.clientX + 15;
+      let y = e.clientY + 15;
+
+      // Bound checking so tooltip is never off-screen
+      if (x + tooltipW > window.innerWidth) {
+        x = e.clientX - tooltipW - 15;
+      }
+      if (y + tooltipH > window.innerHeight) {
+        y = e.clientY - tooltipH - 15;
+      }
+
+      this.activeTooltip.x = x;
+      this.activeTooltip.y = y;
+    },
+
+    hideTooltip() {
+      this.activeTooltip.show = false;
     },
 
     showToast(message, error = false) {
