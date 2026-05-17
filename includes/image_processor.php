@@ -118,7 +118,7 @@ function is_animated_webp(string $path): bool {
  * or      ['ok' => false, 'error' => '...']
  */
 function process_image(string $tmp_path, string $out_dir, string $random_id, string $mime, bool $animated): array {
-    if (!is_dir($out_dir)) mkdir($out_dir, 0750, true);
+    if (!is_dir($out_dir)) mkdir($out_dir, 0755, true);
 
     if ($animated) {
         return convert_to_webm($tmp_path, $out_dir, $random_id);
@@ -133,30 +133,59 @@ function process_image(string $tmp_path, string $out_dir, string $random_id, str
 function convert_to_avif(string $src, string $out_dir, string $id, string $mime): array {
     $dest = $out_dir . '/' . $id . '.avif';
 
+    // 1. Try Imagick if available and has AVIF write support
     if (extension_loaded('imagick')) {
         try {
             $im = new Imagick($src);
-            // Strip all metadata
-            $im->stripImage();
-            // Handle multi-layer (just take first)
-            if ($im->getNumberImages() > 1) {
-                $im = $im->mergeImageLayers(Imagick::LAYERMETHOD_FLATTEN);
-            }
-            $im->setImageFormat('avif');
-            $im->setImageCompressionQuality(AVIF_QUALITY);
-            $im->writeImage($dest);
-            $im->clear();
+            // Check if AVIF format is supported by the system's ImageMagick
+            if (in_array('AVIF', $im->queryFormats('AVIF'), true)) {
+                // Strip all metadata
+                $im->stripImage();
+                // Handle multi-layer (just take first)
+                if ($im->getNumberImages() > 1) {
+                    $im = $im->mergeImageLayers(Imagick::LAYERMETHOD_FLATTEN);
+                }
+                $im->setImageFormat('avif');
+                $im->setImageCompressionQuality(AVIF_QUALITY);
+                $im->writeImage($dest);
+                $im->clear();
 
-            if (!file_exists($dest)) {
-                return ['ok' => false, 'error' => 'AVIF output not created.'];
+                if (file_exists($dest)) {
+                    return ['ok' => true, 'type' => 'avif', 'path' => $dest, 'size' => filesize($dest)];
+                }
             }
-            return ['ok' => true, 'type' => 'avif', 'path' => $dest, 'size' => filesize($dest)];
+        } catch (Exception $e) {
+            // Fall through to GD
+        }
+    }
+
+    // 2. GD Fallback (PHP 8.1+ supports AVIF natively in GD)
+    if (function_exists('imageavif') && function_exists('imagecreatefromstring')) {
+        try {
+            $data = @file_get_contents($src);
+            if ($data !== false) {
+                $im = @imagecreatefromstring($data);
+                if ($im !== false) {
+                    // Convert palette-based images (like GIF/8-bit PNG) to truecolor to preserve quality
+                    if (!imageistruecolor($im)) {
+                        imagepalettetotruecolor($im);
+                    }
+                    
+                    // Save as AVIF
+                    $ok = @imageavif($im, $dest, AVIF_QUALITY);
+                    imagedestroy($im);
+
+                    if ($ok && file_exists($dest)) {
+                        return ['ok' => true, 'type' => 'avif', 'path' => $dest, 'size' => filesize($dest)];
+                    }
+                }
+            }
         } catch (Exception $e) {
             // Fall through to FFmpeg
         }
     }
 
-    // FFmpeg fallback for AVIF
+    // 3. FFmpeg fallback for AVIF
     $escaped_src  = escapeshellarg($src);
     $escaped_dest = escapeshellarg($dest);
     $quality = AVIF_QUALITY;
