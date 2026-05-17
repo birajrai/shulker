@@ -118,13 +118,29 @@ function is_animated_webp(string $path): bool {
  * or      ['ok' => false, 'error' => '...']
  */
 function process_image(string $tmp_path, string $out_dir, string $random_id, string $mime, bool $animated): array {
-    if (!is_dir($out_dir)) mkdir($out_dir, 0755, true);
+    // Ensure parent images directory is 0755
+    $parent_dir = dirname($out_dir); // IMAGES_PATH
+    if (is_dir($parent_dir)) {
+        @chmod($parent_dir, 0755);
+    }
+
+    if (!is_dir($out_dir)) {
+        mkdir($out_dir, 0755, true);
+    }
+    @chmod($out_dir, 0755);
 
     if ($animated) {
-        return convert_to_webm($tmp_path, $out_dir, $random_id);
+        $res = convert_to_webm($tmp_path, $out_dir, $random_id);
     } else {
-        return convert_to_avif($tmp_path, $out_dir, $random_id, $mime);
+        $res = convert_to_avif($tmp_path, $out_dir, $random_id, $mime);
     }
+
+    // Ensure the created file is readable by the web server (0644)
+    if ($res['ok'] && isset($res['path']) && file_exists($res['path'])) {
+        @chmod($res['path'], 0644);
+    }
+
+    return $res;
 }
 
 /**
@@ -226,3 +242,31 @@ function convert_to_webm(string $src, string $out_dir, string $id): array {
 
     return ['ok' => true, 'type' => 'webm', 'path' => $dest, 'size' => filesize($dest)];
 }
+
+/**
+ * Automatically heal permissions for the user's images directory and files.
+ */
+function heal_user_permissions(string $user_id): void {
+    $parent = IMAGES_PATH;
+    if (is_dir($parent)) {
+        @chmod($parent, 0755);
+    }
+    
+    $user_dir = $parent . '/' . $user_id;
+    if (is_dir($user_dir)) {
+        @chmod($user_dir, 0755);
+        
+        // Scan directory and fix all file permissions
+        $files = scandir($user_dir);
+        if ($files !== false) {
+            foreach ($files as $file) {
+                if ($file === '.' || $file === '..') continue;
+                $file_path = $user_dir . '/' . $file;
+                if (is_file($file_path)) {
+                    @chmod($file_path, 0644);
+                }
+            }
+        }
+    }
+}
+
