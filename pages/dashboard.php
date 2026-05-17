@@ -16,194 +16,207 @@ $display_name = h($user['global_name'] ?: $user['username']);
 layout_head('Dashboard');
 ?>
 
-<div x-data="shulker()" x-init="init()" class="min-h-screen flex flex-col">
+<div x-data="shulker()" x-init="init()" class="min-h-screen flex flex-col justify-between">
 
   <!-- ─── Nav ──────────────────────────────────────────── -->
-  <nav class="border-b border-chalk-warm bg-chalk sticky top-0 z-40 px-4 sm:px-6 py-3 flex items-center justify-between">
-    <span class="font-mono text-sm font-500 text-ink">
-      <span class="text-rust">▪</span> shulker
-    </span>
+  <nav class="border-b-4 border-black bg-shulker-deep sticky top-0 z-40 px-4 sm:px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-2.5">
+      <img src="/shulker.webp" alt="Shulker Box" class="w-6 h-6 pixelated">
+      <span class="font-retro text-xs tracking-tight text-white mc-shadow">
+        shulker
+      </span>
+    </div>
 
     <div class="flex items-center gap-3">
-      <!-- Storage counter -->
-      <span class="font-mono text-xs text-stone" x-text="images.length + ' / <?= MAX_IMAGES_PER_USER ?>'"></span>
-
-      <!-- User chip -->
-      <div class="flex items-center gap-2 border border-chalk-warm bg-white rounded px-2.5 py-1.5">
+      <!-- Storage chip -->
+      <div class="flex items-center gap-2 border-2 border-black bg-shulker-dark px-2.5 py-1 text-white">
         <?php if ($avatar_url): ?>
-        <img src="<?= $avatar_url ?>" alt="" class="w-5 h-5 rounded-full" loading="lazy">
+        <img src="<?= $avatar_url ?>" alt="" class="w-4 h-4 border border-black pixelated" loading="lazy">
         <?php else: ?>
-        <div class="w-5 h-5 rounded-full bg-stone-light flex items-center justify-center text-ink text-xs font-500">
+        <div class="w-4 h-4 bg-stone-light flex items-center justify-center text-ink text-[10px] font-bold border border-black">
           <?= mb_substr($display_name, 0, 1) ?>
         </div>
         <?php endif; ?>
-        <span class="text-xs text-ink font-400 max-w-[120px] truncate"><?= $display_name ?></span>
+        <span class="font-mono text-xs text-gray-200" x-text="images.length + ' / <?= MAX_IMAGES_PER_USER ?>'"></span>
       </div>
 
-      <a href="/logout" class="btn border border-chalk-warm bg-white text-stone text-xs px-3 py-1.5 rounded hover:border-ink hover:text-ink">
+      <a href="/logout" class="mc-btn mc-btn-red text-[10px] py-1.5 px-3">
         Sign out
       </a>
     </div>
   </nav>
 
   <!-- ─── Main ─────────────────────────────────────────── -->
-  <main class="flex-1 px-4 sm:px-6 py-8 max-w-5xl mx-auto w-full">
+  <main class="flex-1 px-4 sm:px-6 py-8 max-w-5xl mx-auto w-full z-10">
 
-    <!-- Upload zone -->
-    <div
-      class="upload-zone border-2 border-dashed border-chalk-warm rounded-md bg-white mb-8 cursor-pointer"
-      @click="$refs.fileInput.click()"
-      @dragover.prevent="dragOver = true"
-      @dragleave.prevent="dragOver = false"
-      @drop.prevent="handleDrop($event)"
-      :class="{ 'drag-over': dragOver }"
-    >
-      <input
-        type="file"
-        x-ref="fileInput"
-        class="hidden"
-        accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
-        multiple
-        @change="handleFileInput($event)"
+    <div class="mc-panel p-6 sm:p-8">
+      
+      <!-- Upload zone -->
+      <div
+        class="upload-zone border-4 border-dashed border-shulker-light/50 bg-shulker-deep/20 rounded-none mb-8 cursor-pointer relative"
+        @click="$clickUpload($event)"
+        @dragover.prevent="dragOver = true"
+        @dragleave.prevent="dragOver = false"
+        @drop.prevent="handleDrop($event)"
+        :class="{ 'drag-over': dragOver }"
       >
+        <input
+          type="file"
+          x-ref="fileInput"
+          class="hidden"
+          accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+          multiple
+          @change="handleFileInput($event)"
+        >
 
-      <div class="py-10 px-6 flex flex-col items-center gap-3" x-show="!uploading">
-        <div class="w-12 h-12 border border-chalk-warm rounded-md flex items-center justify-center text-stone mb-1">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-        </div>
-        <p class="text-ink text-sm font-400">Drop images here, or <span class="text-rust underline underline-offset-2">click to browse</span></p>
-        <p class="font-mono text-xs text-stone">JPG · PNG · WebP · AVIF · GIF · Animated WebP &nbsp;·&nbsp; 5 MB max</p>
-      </div>
-
-      <!-- Upload progress -->
-      <div class="py-8 px-6 flex flex-col items-center gap-4 w-full" x-show="uploading" x-cloak>
-        <div class="w-full max-w-sm">
-          <div class="flex justify-between items-center mb-2">
-            <span class="font-mono text-xs text-stone" x-text="uploadStatusText"></span>
-            <span class="font-mono text-xs text-stone" x-text="Math.round(uploadProgress) + '%'"></span>
+        <div class="py-12 px-6 flex flex-col items-center gap-4 text-center" x-show="!uploading">
+          <div class="w-14 h-14 border-2 border-black bg-shulker/30 flex items-center justify-center text-white shadow-inner relative group">
+            <img src="/shulker.webp" alt="Shulker Box" class="w-10 h-10 pixelated transform group-hover:scale-110 transition-transform duration-200">
           </div>
-          <div class="h-1 bg-chalk-warm rounded-full overflow-hidden">
-            <div class="progress-bar h-full bg-rust rounded-full" :style="'width:' + uploadProgress + '%'"></div>
+          <div>
+            <p class="font-retro text-[10px] sm:text-xs text-yellow-300 mc-shadow mb-1">
+              Drop images here, or <span class="text-white underline underline-offset-4">click to browse</span>
+            </p>
+            <p class="font-mono text-xs text-gray-400 mt-2">JPG · PNG · WebP · AVIF · GIF &nbsp;·&nbsp; 5 MB max</p>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Toast -->
-    <div
-      x-show="toast.show"
-      x-transition:enter="transition ease-out duration-150"
-      x-transition:enter-start="opacity-0 translate-y-1"
-      x-transition:enter-end="opacity-100 translate-y-0"
-      x-transition:leave="transition ease-in duration-100"
-      x-transition:leave-start="opacity-100"
-      x-transition:leave-end="opacity-0"
-      x-cloak
-      class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 border rounded px-4 py-2.5 text-sm font-400 shadow-sm"
-      :class="toast.error ? 'bg-white border-rust text-rust' : 'bg-ink text-chalk border-ink'"
-      x-text="toast.message"
-    ></div>
-
-    <!-- Gallery header -->
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-sm font-mono text-stone uppercase tracking-widest">Uploads</h2>
-      <span class="font-mono text-xs text-stone" x-show="images.length === 0" x-cloak>empty</span>
-    </div>
-
-    <!-- Loading skeleton -->
-    <div x-show="loading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3" x-cloak>
-      <template x-for="i in 8" :key="i">
-        <div class="aspect-square bg-chalk-warm rounded-md animate-pulse"></div>
-      </template>
-    </div>
-
-    <!-- Empty state -->
-    <div x-show="!loading && images.length === 0" x-cloak class="py-20 text-center">
-      <p class="text-stone text-sm font-300">No images yet. Upload something above.</p>
-    </div>
-
-    <!-- Image grid -->
-    <div
-      x-show="!loading && images.length > 0"
-      x-cloak
-      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
-    >
-      <template x-for="img in images" :key="img.id">
-        <div class="img-card border border-chalk-warm bg-white rounded-md overflow-hidden flex flex-col fade-up">
-
-          <!-- Preview -->
-          <div class="aspect-square bg-chalk-warm relative overflow-hidden">
-            <template x-if="img.type === 'webm'">
-              <video
-                :src="img.url"
-                class="w-full h-full object-cover"
-                autoplay loop muted playsinline
-              ></video>
-            </template>
-            <template x-if="img.type !== 'webm'">
-              <img
-                :src="img.url"
-                :alt="img.id"
-                class="w-full h-full object-cover"
-                loading="lazy"
-              >
-            </template>
-          </div>
-
-          <!-- Card footer -->
-          <div class="px-2.5 py-2 flex flex-col gap-2">
-            <div class="flex items-center gap-1">
-              <span class="font-mono text-[10px] text-stone uppercase" x-text="img.type"></span>
-              <span class="font-mono text-[10px] text-stone-light">·</span>
-              <span class="font-mono text-[10px] text-stone" x-text="formatSize(img.size)"></span>
+        <!-- Upload progress -->
+        <div class="py-8 px-6 flex flex-col items-center gap-4 w-full" x-show="uploading" x-cloak>
+          <div class="w-full max-w-sm">
+            <div class="flex justify-between items-center mb-2 font-mono text-xs text-gray-300">
+              <span x-text="uploadStatusText"></span>
+              <span x-text="Math.round(uploadProgress) + '%'"></span>
             </div>
-            <p class="font-mono text-[10px] text-stone-light" x-text="formatDate(img.created)"></p>
-
-            <div class="flex gap-1.5 mt-0.5">
-              <!-- Copy URL -->
-              <button
-                @click="copyUrl(img)"
-                class="btn flex-1 border border-chalk-warm bg-chalk text-stone text-xs py-1.5 rounded hover:border-ink hover:text-ink flex items-center justify-center gap-1"
-                :class="{ 'border-sage text-sage': img.copied }"
-              >
-                <svg x-show="!img.copied" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                </svg>
-                <svg x-show="img.copied" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" x-cloak>
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-                <span x-text="img.copied ? 'Copied' : 'Copy'"></span>
-              </button>
-
-              <!-- Delete -->
-              <button
-                @click="deleteImage(img)"
-                class="btn border border-chalk-warm bg-chalk text-stone text-xs px-2.5 py-1.5 rounded hover:border-rust hover:text-rust"
-                :disabled="img.deleting"
-                :class="{ 'opacity-50 cursor-not-allowed': img.deleting }"
-              >
-                <svg x-show="!img.deleting" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                  <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
-                </svg>
-                <svg x-show="img.deleting" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spinner" x-cloak>
-                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                </svg>
-              </button>
+            <div class="h-4 bg-black border-2 border-gray-600 p-[2px] overflow-hidden">
+              <div class="progress-bar h-full bg-green-500" :style="'width:' + uploadProgress + '%'"></div>
             </div>
           </div>
         </div>
-      </template>
+      </div>
+
+      <!-- Toast -->
+      <div
+        x-show="toast.show"
+        x-transition:enter="transition ease-out duration-150"
+        x-transition:enter-start="opacity-0 translate-y-2"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-100"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        x-cloak
+        class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 p-4 border-4 border-black mc-shadow text-xs font-retro text-center min-w-[250px]"
+        :class="toast.error ? 'bg-red-900 text-red-200 border-red-950 shadow-[inset_-2px_-2px_0px_#5e1c1c,inset_2px_2px_0px_#f06a6a]' : 'bg-shulker text-white border-black shadow-[inset_-2px_-2px_0px_#4a2c4a,inset_2px_2px_0px_#ac7cac]'"
+        x-text="toast.message"
+      ></div>
+
+      <!-- Gallery header -->
+      <div class="flex items-center justify-between mb-4 mt-8">
+        <h2 class="font-retro text-xs text-yellow-300 mc-shadow uppercase tracking-widest">Shulker Inventory</h2>
+        <span class="font-mono text-xs text-gray-400" x-text="images.length + ' item(s)'"></span>
+      </div>
+
+      <!-- Loading skeleton -->
+      <div x-show="loading" class="grid grid-cols-3 sm:grid-cols-6 md:grid-cols-9 gap-2 bg-shulker-deep/30 border-4 border-black p-4" x-cloak>
+        <template x-for="i in 27" :key="i">
+          <div class="aspect-square bg-black/40 border-2 border-black shadow-[inset_2px_2px_0px_#070407] animate-pulse"></div>
+        </template>
+      </div>
+
+      <!-- Inventory Grid -->
+      <div
+        x-show="!loading"
+        x-cloak
+        class="grid grid-cols-3 sm:grid-cols-6 md:grid-cols-9 gap-2 bg-shulker-deep/50 border-4 border-black p-4 shadow-inner"
+      >
+        <template x-for="index in getTotalSlots()" :key="index">
+          <div class="aspect-square">
+            
+            <!-- Case 1: Slot has an uploaded image -->
+            <template x-if="index - 1 < images.length">
+              <div 
+                class="mc-slot group cursor-pointer relative w-full h-full"
+                @click="copyUrl(images[index - 1])"
+              >
+                <!-- Preview -->
+                <template x-if="images[index - 1].type === 'webm'">
+                  <video
+                    :src="images[index - 1].url"
+                    class="w-full h-full object-cover pixelated"
+                    autoplay loop muted playsinline
+                  ></video>
+                </template>
+                <template x-if="images[index - 1].type !== 'webm'">
+                  <img
+                    :src="images[index - 1].url"
+                    :alt="images[index - 1].id"
+                    class="w-full h-full object-cover pixelated"
+                    loading="lazy"
+                  >
+                </template>
+                
+                <div class="mc-slot-highlight absolute inset-0 pointer-events-none"></div>
+
+                <!-- Copy checkmark indicator -->
+                <div x-show="images[index - 1].copied" class="absolute inset-0 bg-green-900/90 flex flex-col items-center justify-center text-center p-1 z-10" x-cloak>
+                  <svg class="w-6 h-6 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  <span class="font-retro text-[8px] text-green-300 mt-1 mc-shadow">COPIED</span>
+                </div>
+
+                <!-- Delete progress spinner -->
+                <div x-show="images[index - 1].deleting" class="absolute inset-0 bg-red-900/90 flex items-center justify-center z-10" x-cloak>
+                  <svg class="w-6 h-6 text-red-400 spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                  </svg>
+                </div>
+
+                <!-- Hover overlays for actions -->
+                <div class="absolute inset-x-0 bottom-0 bg-black/85 p-1 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-auto" @click.stop>
+                  <button @click.stop="copyUrl(images[index - 1])" class="w-6 h-6 bg-green-700 hover:bg-green-600 border border-black flex items-center justify-center text-white" title="Copy URL">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                  </button>
+                  <button @click.stop="deleteImage(images[index - 1])" class="w-6 h-6 bg-red-700 hover:bg-red-600 border border-black flex items-center justify-center text-white" title="Delete Image">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <!-- Minecraft Tooltip -->
+                <div class="mc-tooltip hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 pointer-events-none p-3 text-left font-mono">
+                  <div class="font-retro text-[9px] text-yellow-300 mb-1 truncate" x-text="'SHULKER_' + images[index - 1].id.substring(0, 8).toUpperCase()"></div>
+                  <div class="text-[10px] text-cyan-300 font-bold mb-1" x-text="images[index - 1].type.toUpperCase() + ' Item'"></div>
+                  <div class="text-[10px] text-gray-300" x-text="'Size: ' + formatSize(images[index - 1].size)"></div>
+                  <div class="text-[10px] text-gray-400" x-text="'Date: ' + formatDate(images[index - 1].created)"></div>
+                  <div class="border-t border-purple-900/50 my-1.5"></div>
+                  <div class="text-[9px] text-purple-300 font-bold">Left-Click to Copy Link</div>
+                  <div class="text-[9px] text-red-300 font-bold">Overlays to Delete</div>
+                </div>
+
+              </div>
+            </template>
+
+            <!-- Case 2: Slot is empty -->
+            <template x-if="index - 1 >= images.length">
+              <div class="mc-slot mc-slot-empty w-full h-full pointer-events-none">
+                <div class="w-4 h-4 bg-black/25 border border-black/10"></div>
+              </div>
+            </template>
+
+          </div>
+        </template>
+      </div>
+
     </div>
 
   </main>
 
-  <footer class="border-t border-chalk-warm px-6 py-4 mt-8">
-    <span class="font-mono text-xs text-stone">shulker <?= SHULKER_VERSION ?></span>
+  <footer class="border-t-4 border-black bg-shulker-deep px-6 py-4 text-center mt-8 z-10">
+    <span class="font-mono text-xs text-gray-400 mc-shadow">shulker box v<?= SHULKER_VERSION ?></span>
   </footer>
 
 </div>
@@ -224,6 +237,10 @@ function shulker() {
     async init() {
       await this.loadImages();
       this.setupPaste();
+    },
+
+    getTotalSlots() {
+      return Math.max(27, Math.ceil(this.images.length / 9) * 9);
     },
 
     async loadImages() {
@@ -252,6 +269,12 @@ function shulker() {
         }
         if (files.length > 0) this.uploadFiles(files);
       });
+    },
+
+    $clickUpload(e) {
+      // Avoid clicking input when inner elements with their own event triggers are clicked
+      if (e.target.closest('input')) return;
+      this.$refs.fileInput.click();
     },
 
     handleFileInput(event) {
@@ -290,7 +313,7 @@ function shulker() {
             deleting: false,
           };
           this.images.unshift(newImg);
-          if (files.length === 1) this.showToast('Uploaded!');
+          if (files.length === 1) this.showToast('Uploaded successfully!');
         } else {
           this.showToast(result.error || 'Upload failed.', true);
         }
@@ -333,6 +356,7 @@ function shulker() {
       try {
         await navigator.clipboard.writeText(img.url);
         img.copied = true;
+        this.showToast('Link copied to clipboard!');
         setTimeout(() => { img.copied = false; }, 2000);
       } catch {
         // Fallback
@@ -343,6 +367,7 @@ function shulker() {
         document.execCommand('copy');
         document.body.removeChild(ta);
         img.copied = true;
+        this.showToast('Link copied to clipboard!');
         setTimeout(() => { img.copied = false; }, 2000);
       }
     },
@@ -363,7 +388,7 @@ function shulker() {
         const d = await r.json();
         if (d.ok) {
           this.images = this.images.filter(i => i.id !== img.id);
-          this.showToast('Deleted.');
+          this.showToast('Deleted item successfully.');
         } else {
           img.deleting = false;
           this.showToast(d.error || 'Delete failed.', true);
