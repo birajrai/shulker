@@ -1,0 +1,31 @@
+Options -Indexes
+Options -FollowSymLinks
+
+# Security headers
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-Robots-Tag "noindex,nofollow"
+Header always set X-Frame-Options "DENY"
+Header always set X-XSS-Protection "1; mode=block"
+Header always set Referrer-Policy "no-referrer"
+
+# Block access to storage and includes
+RewriteEngine On
+RewriteRule ^storage/ - [F,L]
+RewriteRule ^includes/ - [F,L]
+RewriteRule ^config\.php$ - [F,L]
+
+# Route all requests through index.php except real files
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(?!images/)(.*)$ index.php [QSA,L]
+
+# Block PHP in images directory
+<Directory "images">
+    php_flag engine off
+    Options -ExecCGI
+</Directory>
+
+# Cloudflare caching for static images
+<FilesMatch "\.(avif|webm)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+</FilesMatch>
